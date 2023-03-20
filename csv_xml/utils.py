@@ -1,10 +1,7 @@
 import csv
 import codecs
 import xml.etree.ElementTree as ElementTree
-from fastapi import FastAPI, UploadFile
-from fastapi.responses import FileResponse
-
-app = FastAPI()
+import pandas as pd
 
 def csv_to_xml(file):
 
@@ -105,11 +102,39 @@ def csv_to_xml(file):
     return basename
 
 
-# upload the csv file
-@app.post("/uploadfile/")
-async def upload_file(file: UploadFile):
+def xml_to_csv(file):
+    temp=[]
+    
+    root = ElementTree.parse(file.file).getroot()
+    for image_tag in root:
+            image = {}
+            for key, value in image_tag.items():
+                image[key] = value
+            for box_tag in image_tag.iter('box'):
+                #box = {'type': 'box'}
+                box = {}
+                for key, value in box_tag.items():
+                    box[key] = value
+                # print('box:',box)
+                z = {**image, **box}
+                temp.append(z)
+            # print('image:',image)
 
-    basename = csv_to_xml(file)
+    print('temp:',temp)
+    field_names = ['id','label','source','frame','outside','occluded','keyframe','xtl','ytl','xbr','ybr','rotation','z_order']
+    df = pd.DataFrame(temp, columns =field_names)
+    print(df)
+    df['w'] = df['xbr'].astype(float) - df['xtl'].astype(float) 
+    df['h'] = df['ybr'].astype(float)  - df['ytl'].astype(float) 
+    df = df[['id','label','frame','outside','occluded','xtl','ytl','w','h']]
+    df['frame'] = df['frame'].astype(int)
+    df['id'] = df['id'].astype(int)
+    df = df.sort_values(by = 'frame')
 
-    # return a link to download the xml file
-    return FileResponse(path=f"{basename}.xml", media_type='application/xml', filename=basename)
+    # save the file's name
+    basename = file.filename.split('.')[0]
+
+    # chaneg dataframe to csv and save it
+    df.to_csv(f"{basename}.csv")
+
+    return basename
