@@ -111,19 +111,17 @@ def xml_to_csv(file):
             for key, value in image_tag.items():
                 image[key] = value
             for box_tag in image_tag.iter('box'):
-                #box = {'type': 'box'}
+                
                 box = {}
                 for key, value in box_tag.items():
                     box[key] = value
-                # print('box:',box)
+                
                 z = {**image, **box}
                 temp.append(z)
-            # print('image:',image)
-
-    print('temp:',temp)
+            
     field_names = ['id','label','source','frame','outside','occluded','keyframe','xtl','ytl','xbr','ybr','rotation','z_order']
     df = pd.DataFrame(temp, columns =field_names)
-    print(df)
+    
     df['w'] = df['xbr'].astype(float) - df['xtl'].astype(float) 
     df['h'] = df['ybr'].astype(float)  - df['ytl'].astype(float) 
     df = df[['id','label','frame','outside','occluded','xtl','ytl','w','h']]
