@@ -8,7 +8,7 @@
   <p align="center">
     An easy-to-use CSV to XML and XML to CSV Convertor API
     <br />
-    <a href="https://github.com/SaeedARV/IUST-CVLab-FastAPI-Projects"><strong>Explore the docs »</strong></a>
+    <a href="https://github.com/SaeedARV/IUST-CVLab-FastAPI-Projects/tree/main/csv_xml"><strong>Explore the docs »</strong></a>
     <br />
     <br />
     <a href="https://github.com/SaeedARV/IUST-CVLab-FastAPI-Projects/issues">Report Bug</a>
