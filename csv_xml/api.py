@@ -9,7 +9,7 @@ app = FastAPI()
 
 # upload the csv file
 @app.post("/uploadfile/")
-async def upload_file(files: List[UploadFile] = File(description="Upload CSV or XML files")):
+async def upload_file(files: List[UploadFile] = File(description="Upload CSV or XML files.")):
     zip_filename = "archive.zip"
     s = io.BytesIO()
     # create a ZipFile object
