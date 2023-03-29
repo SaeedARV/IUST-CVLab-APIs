@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import Response
 from typing import List
 from utils import csv_to_xml, xml_to_csv
@@ -9,7 +9,7 @@ app = FastAPI()
 
 # upload the csv file
 @app.post("/uploadfile/")
-async def upload_file(files: List[UploadFile] = File(...)):
+async def upload_file(files: List[UploadFile] = File(description="Upload CSV or XML files")):
     zip_filename = "archive.zip"
     s = io.BytesIO()
     # create a ZipFile object
@@ -29,7 +29,7 @@ async def upload_file(files: List[UploadFile] = File(...)):
             zipObj.write(f"{basename}.csv")
         
         else:
-            raise Exception("Invalid file")
+            raise HTTPException(400, detail="Invalid document type! please only upload CSV and XML files.")
         
     # close the zip file
     zipObj.close()
