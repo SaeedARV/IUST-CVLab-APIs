@@ -1,9 +1,6 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Query
-from fastapi.responses import Response
 from typing import Annotated
 from utils import *
-from zipfile import ZipFile
-import io
 
 app = FastAPI()
 
@@ -15,10 +12,6 @@ async def upload_file(camera_name: Annotated[str, Form()],
                       video_file: UploadFile = File(description="Upload a video."), 
                       csv_file: UploadFile = File(description="Upload a CSV file."),
                       ):
-    zip_filename = "archive.zip"
-    s = io.BytesIO()
-    # create a ZipFile object
-    zipObj = ZipFile(s, 'w')
     
     if (video_file.content_type != 'video/mp4' and video_file.content_type != 'video/mpeg' and 
         video_file.content_type != 'video/webm') or csv_file.content_type != 'text/csv':
@@ -40,13 +33,4 @@ async def upload_file(camera_name: Annotated[str, Form()],
 
     if gif_flag:
         make_gif(camera_name, fps=fps) 
-
-
-    # # close the zip file
-    zipObj.close()
-
-    # # return a link to download the zip file
-    # return Response(s.getvalue(), media_type="application/x-zip-compressed", headers={
-    #     'Content-Disposition': f'attachment; filename={zip_filename}'
-    # })
     

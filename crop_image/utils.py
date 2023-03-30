@@ -57,14 +57,17 @@ def convert_DataFramToDict(df):
   return new_dict
 
 def prepare_category(current_frame, idx, image_crop1, camera_name):
-  category_crop_image_path = "./frame_sequence"
+  crop_image_path = "./frame_sequence"
   name = camera_name+"_F"+str(current_frame)+"_T"+str(idx)+ ".webP"
   name1 = name[0:-5]
   
   ID  = name1.split('_')
 
+  if not os.path.isdir(crop_image_path):
+    os.mkdir(crop_image_path)
+
   # new folder for each video
-  each_video_path = category_crop_image_path + '/' + ID[0] 
+  each_video_path = crop_image_path + '/' + ID[0] 
   if not os.path.isdir(each_video_path):
       os.mkdir(each_video_path)
 
@@ -79,15 +82,12 @@ def prepare_category(current_frame, idx, image_crop1, camera_name):
 def crop_frame(df, csv_file, video_file, camera_name):
   import cv2
   
-  category_crop_image_path="./frame_sequence"
   m = min_max_wh(df, csv_file)
   list_df = df.values.tolist()
   vidcap = cv2.VideoCapture(video_file.file.name)
   fps = vidcap.get(cv2.CAP_PROP_FPS)
   print('fps:',fps)
   success,image = vidcap.read()
-  frame = 0
-  success = True
   cap = cv2.VideoCapture(video_file.file.name)
   current_frame = 0
   while True:
@@ -249,7 +249,9 @@ def make_gif(camera_name, fps):
     from PIL import Image
     import moviepy.editor as mp
 
-    frame_folder = f"./frame_sequence/{camera_name}"
+    crop_image_path = "./frame_sequence"   
+
+    frame_folder = f"./{crop_image_path}/{camera_name}"
     print('frame_folder:',frame_folder)
     for sub_path in glob.glob(f"{frame_folder}/*"):
             print('sub_path:',sub_path)
@@ -262,7 +264,15 @@ def make_gif(camera_name, fps):
             #             save_all=True, duration=fps, loop=1)
             # else:
             print('int(len(frames)/fps):',int(len(frames)/fps))
-            path = './gif' + "/" + os.path.basename(sub_path)
+
+            gif_path = './gif'
+            if not os.path.isdir(gif_path):
+                os.mkdir(gif_path)
+            gif_path += f'/{camera_name}'
+            if not os.path.isdir(gif_path):
+                os.mkdir(gif_path)
+
+            path = gif_path + "/" + os.path.basename(sub_path)
             try:
                 frame_one.save(path +".gif", format="GIF", append_images=frames[0:len(frames):int(len(frames)/fps)],
                             save_all=True, duration=(fps*10), loop=1)
