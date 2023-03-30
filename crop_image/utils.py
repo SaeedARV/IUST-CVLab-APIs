@@ -82,13 +82,13 @@ def crop_frame(df, csv_file, video_file, camera_name):
   category_crop_image_path="./frame_sequence"
   m = min_max_wh(df, csv_file)
   list_df = df.values.tolist()
-  vidcap = cv2.VideoCapture(video_file)
+  vidcap = cv2.VideoCapture(video_file.file.name)
   fps = vidcap.get(cv2.CAP_PROP_FPS)
   print('fps:',fps)
   success,image = vidcap.read()
   frame = 0
   success = True
-  cap = cv2.VideoCapture(video_file)
+  cap = cv2.VideoCapture(video_file.file.name)
   current_frame = 0
   while True:
         if current_frame > int(df[['frame']].max()):
@@ -169,28 +169,29 @@ def crop_frame(df, csv_file, video_file, camera_name):
          
 def crop_normal(df, video_file, camera_name):
   import cv2
-
   list_df = df.values.tolist()
-  vidcap = cv2.VideoCapture(video_file.filename)
+  
+  vidcap = cv2.VideoCapture(video_file.file.name)
   fps = vidcap.get(cv2.CAP_PROP_FPS)
   print('fps:',fps)
-  cap = cv2.VideoCapture(video_file.filename)
+  cap = cv2.VideoCapture(video_file.file.name)
   current_frame = 0
   while True:
         if current_frame > int(df[['frame']].max()):
             print(current_frame)
             break
         ret, image = cap.read()
+        
         if ret:
-            z = list(np.where(np.array(list(zip(*list_df))[3])==current_frame))[0]
+            z = list(np.where(np.array(list(zip(*list_df))[3])==str(current_frame)))[0]
             for ind, i in enumerate(z):
-                if list_df[i][5]==1 or list_df[i][4] ==1 :
+                if list_df[i][5]=='1' or list_df[i][4] =='1' :
                     print('frame:',list_df[i][3],'id:',list_df[i][1],'occluded:',list_df[i][5],'outside:',list_df[i][4])
                 else:    
-                    x = int(list_df[i][6]) 
-                    y = int(list_df[i][7]) 
-                    w = int(list_df[i][8]) 
-                    h = int(list_df[i][9])
+                    x = int(float(list_df[i][6])) 
+                    y = int(float(list_df[i][7]))
+                    w = int(float(list_df[i][8]))
+                    h = int(float(list_df[i][9]))
                     if y<0 :
                         image_crop1= image[0:y+h, x:x+w]
                     elif x<0:
@@ -207,13 +208,13 @@ def crop_frame_smaller(df, video_file, camera_name):
   import cv2
 
   list_df = df.values.tolist()
-  vidcap = cv2.VideoCapture(video_file)
+  vidcap = cv2.VideoCapture(video_file.file.name)
   fps = vidcap.get(cv2.CAP_PROP_FPS)
   print('fps:',fps)
-  cap = cv2.VideoCapture(video_file)
+  cap = cv2.VideoCapture(video_file.file.name)
   current_frame = 0
   while True:
-        if current_frame >  int(df[['frame']].max()):
+        if current_frame > int(df[['frame']].max()):
             break
         ret, image = cap.read()
         if ret:
@@ -248,11 +249,11 @@ def make_gif(camera_name, fps):
     from PIL import Image
     import moviepy.editor as mp
 
-    frame_folder = "./frame_sequence"
+    frame_folder = f"./frame_sequence/{camera_name}"
     print('frame_folder:',frame_folder)
-    for sub_path in os.listdir(f"{frame_folder}/*"):
+    for sub_path in glob.glob(f"{frame_folder}/*"):
             print('sub_path:',sub_path)
-            frames = [Image.open(image) for image in glob.glob(f"{frame_folder}/{camera_name}/{sub_path}/*")]
+            frames = [Image.open(image) for image in glob.glob(f"{sub_path}/*")]
             frame_one = frames[0]
             print('len(frames):',len(frames))
             print(" os.path.basename(sub_path):", os.path.basename(sub_path))
@@ -261,7 +262,7 @@ def make_gif(camera_name, fps):
             #             save_all=True, duration=fps, loop=1)
             # else:
             print('int(len(frames)/fps):',int(len(frames)/fps))
-            path = "./gif"+ "/"+ camera_name + "/"+ os.path.basename(sub_path)
+            path = './gif' + "/" + os.path.basename(sub_path)
             try:
                 frame_one.save(path +".gif", format="GIF", append_images=frames[0:len(frames):int(len(frames)/fps)],
                             save_all=True, duration=(fps*10), loop=1)
