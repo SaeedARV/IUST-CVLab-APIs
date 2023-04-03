@@ -3,6 +3,7 @@ import pandas as pd
 import xml.etree.ElementTree as ElementTree
 import moviepy.editor as mp
 import codecs
+import shutil 
 import json
 import glob
 import cv2
@@ -26,13 +27,20 @@ def csv_to_json(csv_file):
   
     # save the file's name
     basename = csv_file.filename.split('.')[0]
+    
+    # new folder for json file
+    path = './json'
+    if not os.path.isdir(path):
+        os.mkdir(path)
+
+    path += "/"+f"{basename}.json"
 
     #convert python jsonArray to JSON String and write to file
-    with open(f"{basename}.json", 'w', encoding='utf-8') as jsonf: 
+    with open(path, 'w', encoding='utf-8') as jsonf: 
         jsonString = json.dumps(jsonArray, indent=4)
         jsonf.write(jsonString)
     
-    return basename
+    return path
 # list_df[i][0] --> id
 # list_df[i][1] --> label
 # list_df[i][2] --> frame
@@ -69,6 +77,7 @@ def prepare_category(current_frame, idx, image_crop1, camera_name):
   
   ID  = name1.split('_')
 
+  # new folder for crop images
   if not os.path.isdir(crop_image_path):
     os.mkdir(crop_image_path)
 
@@ -86,13 +95,21 @@ def prepare_category(current_frame, idx, image_crop1, camera_name):
   cv2.imwrite(dst_path + "/" + name , image_crop1)     
 
 def crop_frame(df, csv_file, video_file, camera_name):
+  # new folder for video
+  path = './videos'
+  if not os.path.isdir(path):
+      os.mkdir(path)
+  path += "/"+video_file.filename
+  # save the video in the current directory
+  with open(path, "wb") as buffer:
+      shutil.copyfileobj(video_file.file, buffer) 
+
   m = min_max_wh(df, csv_file)
   list_df = df.values.tolist()
-  vidcap = cv2.VideoCapture(video_file.file.name)
-  fps = vidcap.get(cv2.CAP_PROP_FPS)
+  cap = cv2.VideoCapture(path)
+  fps = cap.get(cv2.CAP_PROP_FPS)
   print('fps:',fps)
-  success,image = vidcap.read()
-  cap = cv2.VideoCapture(video_file.file.name)
+  success,image = cap.read()
   current_frame = 0
   while True:
         if current_frame > int(df[['frame']].max()):
@@ -172,12 +189,20 @@ def crop_frame(df, csv_file, video_file, camera_name):
   return fps
          
 def crop_normal(df, video_file, camera_name):
+  # new folder for video
+  path = './videos'
+  if not os.path.isdir(path):
+      os.mkdir(path)
+  path += "/"+video_file.filename
+  # save the video in the current directory
+  with open(path, "wb") as buffer:
+      shutil.copyfileobj(video_file.file, buffer) 
+
   list_df = df.values.tolist()
   
-  vidcap = cv2.VideoCapture(video_file.file.name)
-  fps = vidcap.get(cv2.CAP_PROP_FPS)
+  cap = cv2.VideoCapture(path)
+  fps = cap.get(cv2.CAP_PROP_FPS)
   print('fps:',fps)
-  cap = cv2.VideoCapture(video_file.file.name)
   current_frame = 0
   while True:
         if current_frame > int(df[['frame']].max()):
@@ -208,11 +233,19 @@ def crop_normal(df, video_file, camera_name):
   return fps
 
 def crop_frame_smaller(df, video_file, camera_name):
+  # new folder for video
+  path = './videos'
+  if not os.path.isdir(path):
+        os.mkdir(path)
+  path += "/"+video_file.filename
+  # save the video in the current directory
+  with open(path, "wb") as buffer:
+      shutil.copyfileobj(video_file.file, buffer) 
+
   list_df = df.values.tolist()
-  vidcap = cv2.VideoCapture(video_file.file.name)
-  fps = vidcap.get(cv2.CAP_PROP_FPS)
+  cap = cv2.VideoCapture(path)
+  fps = cap.get(cv2.CAP_PROP_FPS)
   print('fps:',fps)
-  cap = cv2.VideoCapture(video_file.file.name)
   current_frame = 0
   while True:
         if current_frame > int(df[['frame']].max()):
@@ -261,14 +294,15 @@ def make_gif(camera_name, fps):
             # else:
             print('int(len(frames)/fps):',int(len(frames)/fps))
 
-            gif_path = './gif'
-            if not os.path.isdir(gif_path):
-                os.mkdir(gif_path)
-            gif_path += f'/{camera_name}'
-            if not os.path.isdir(gif_path):
-                os.mkdir(gif_path)
+            # new folder for gifs
+            path = './gif'
+            if not os.path.isdir(path):
+                os.mkdir(path)
+            path += f'/{camera_name}'
+            if not os.path.isdir(path):
+                os.mkdir(path)
 
-            path = gif_path + "/" + os.path.basename(sub_path)
+            path += "/" + os.path.basename(sub_path)
             try:
                 frame_one.save(path +".gif", format="GIF", append_images=frames[0:len(frames):int(len(frames)/fps)],
                             save_all=True, duration=(fps*10), loop=1)
@@ -277,7 +311,6 @@ def make_gif(camera_name, fps):
                             save_all=True, duration=(fps*10), loop=1)
     clip = mp.VideoFileClip(path +".gif")
     clip.write_videofile(path + ".webM")
-
 
 
 # Functions related to csv_xml API
@@ -375,10 +408,15 @@ def csv_to_xml(file):
     # save the file's name
     basename = file.filename.split('.')[0]
 
+    # new folder for xml files
+    path = './xml_files'
+    if not os.path.isdir(path):
+            os.mkdir(path)
+    path += "/"+f"{basename}.xml"
     # save the xml file
-    tree.write(f"{basename}.xml", method="xml", xml_declaration=True, encoding="utf-8")
+    tree.write(path, method="xml", xml_declaration=True, encoding="utf-8")
 
-    return basename
+    return path
 
 
 def xml_to_csv(file):
@@ -411,7 +449,65 @@ def xml_to_csv(file):
     # save the file's name
     basename = file.filename.split('.')[0]
 
+    # new folder for csv files
+    path = './csv_files'
+    if not os.path.isdir(path):
+            os.mkdir(path)
+    path += "/"+f"{basename}.csv"
     # chaneg dataframe to csv and save it
-    df.to_csv(f"{basename}.csv")
+    df.to_csv(path)
 
-    return basename
+    return path
+
+
+# Functions related to video_partition API
+
+def Partition(video_file, name, s_start=0, s_end=600, duration=90, overlap_frame=80): 
+    # new folder for video
+    path = './videos'
+    if not os.path.isdir(path):
+        os.mkdir(path)
+    path += "/"+video_file.filename
+    # save the video in the current directory
+    with open(path, "wb") as buffer:
+        shutil.copyfileobj(video_file.file, buffer)  
+
+    clip = mp.VideoFileClip(path)
+
+    # new folder for partition videos
+    path = './partition_videos'
+    if not os.path.isdir(path):
+        os.mkdir(path)
+    path += "/"+video_file.filename.split('.')[0]
+    if not os.path.isdir(path):
+        os.mkdir(path)
+
+    #convert_avi_to_mp4(path,"./v.mp4")
+    for i in range(s_start,s_end,duration):
+        try:
+            if i == s_start:
+                #round(i/duration)+1
+                print('i:',i,'start:',i-100, 'end:',i+duration,'step:',int((i-s_start)/duration))
+                
+                clip1 = clip.subclip(i, i+duration)
+                
+                clip1.write_videofile(path+"/"+name+"_"+ str(int((i-s_start)/duration)) + "part.mp4", codec="libx264")
+
+            elif i == int((s_end-s_start)/duration)* duration+s_start:
+                print('i:',i,'start:',i-overlap_frame, 'end:',s_end,'step:',int((i-s_start)/duration))
+
+                clip1 = clip.subclip(i-overlap_frame, s_end)
+
+                clip1.write_videofile(path+"/"+name+"_"+ str(int((i-s_start)/duration)) + "endpart.mp4", codec="libx264")
+                
+            else:
+                print('i:',i,'start:',i-overlap_frame, 'end:',i+duration-overlap_frame,'step:',int((i-s_start)/duration))
+
+                print('step1')
+                j=i-overlap_frame
+                clip1 = clip.subclip(j, j+duration)
+                print('step2')
+                print('*************************************************')
+                clip1.write_videofile(path+"/"+name+"_"+ str(int((i-s_start)/duration)) + "part.mp4", codec="libx264")
+        except:
+            pass
