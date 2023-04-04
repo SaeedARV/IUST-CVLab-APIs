@@ -3,10 +3,10 @@
 <!-- PROJECT LOGO -->
 <div align="center">
 
-<h3 align="center">crop_image, csv_xml and video_partition API</h3>
+<h3 align="center">crop_image, csv_xml and video_partition APIs</h3>
 
   <p align="center">
-    Three easy-to-use API for IUST CV Lab
+    Three easy-to-use APIs for IUST CV Lab
     <br />
     <a href="https://github.com/SaeedARV/IUST-CVLab-FastAPI-Projects"><strong>Explore the docs »</strong></a>
     <br />
